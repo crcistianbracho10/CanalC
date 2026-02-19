@@ -172,15 +172,16 @@
         }
 
         function initPlayer() {
-            if (typeof Playerjs !== 'undefined') {
-                new Playerjs({
-                    id: "player",
-                    file: streamUrl,
-                    poster: "https://i.postimg.cc/W30Rr4bt/Canal-C.png", // <--- AQUÍ ESTÁ LA MINIATURA
-                    autoplay: 0
-                });
-            }
+        if (typeof Playerjs !== 'undefined') {
+            new Playerjs({
+                id: "player",
+                file: streamUrl,
+                poster: "", // Se deja vacío para que no use el logo
+                autoplay: 1, // Inicia solo para mostrar el fotograma real
+                muted: 1     // Obligatorio para que los navegadores permitan el inicio automático
+            });
         }
+    }
 
         window.onload = checkStream;
     </script>
