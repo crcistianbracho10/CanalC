@@ -1,26 +1,313 @@
-// elreproductor.js
-// Este archivo se encarga de inicializar Clappr dentro del div #player
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canal C del Zulia</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-function initPlayer() {
-  var player = new Clappr.Player({
-    source: streamUrl, // viene de tu script principal
-    parentId: "#player",
-    autoPlay: true,
-    mute: false,
-    width: "100%",
-    height: "100%"
-  });
+    <style>
+        :root {
+            --accent-blue: #38bdf8;
+            --deep-navy: #020617;
+            --glass: rgba(15, 23, 42, 0.6);
+        }
 
-  // Eventos básicos para depuración
-  player.on(Clappr.Events.PLAYER_PLAY, function() {
-    console.log("▶️ Reproduciendo transmisión");
-  });
+        body { 
+            background-color: var(--deep-navy); 
+            color: #f1f5f9; 
+            font-family: 'Space Grotesk', sans-serif; 
+            scroll-behavior: smooth;
+        }
 
-  player.on(Clappr.Events.PLAYER_PAUSE, function() {
-    console.log("⏸️ Transmisión en pausa");
-  });
+        /* FONDO ANIMADO */
+        .bg-mesh {
+            position: fixed; inset: 0; z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.05) 0%, transparent 50%);
+        }
 
-  player.on(Clappr.Events.PLAYER_ERROR, function(err) {
-    console.error("❌ Error en el reproductor:", err);
-  });
-}
+        /* NUEVA NAVBAR SEGÚN TU DISEÑO */
+        .navbar {
+            position: fixed; top: 0; width: 100%; z-index: 150;
+            display: flex; flex-direction: column; align-items: center; padding: 20px 0;
+            background: linear-gradient(to bottom, rgba(2, 6, 23, 0.95), transparent);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .nav-logo { height: 45px; margin-bottom: 15px; }
+        .nav-links { display: flex; gap: 35px; }
+        .nav-links a { 
+            color: #94a3b8; 
+            font-size: 0.75rem; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            letter-spacing: 2px; 
+        }
+        .nav-links a:hover { color: var(--accent-blue); }
+
+        /* HERO LOGO STYLE */
+        .hero-logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero-logo {
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            filter: drop-shadow(0 0 30px rgba(56, 189, 248, 0.4));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* SECCIONES PREMIUM */
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px -20px rgba(56, 189, 248, 0.3);
+        }
+
+        /* BOTONES DE ACCIÓN */
+        .btn-main {
+            background: #fff; color: #000;
+            padding: 16px 40px; border-radius: 14px;
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+
+        .btn-main:hover {
+            background: var(--accent-blue);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .section-label {
+            color: var(--accent-blue);
+            font-weight: 700; font-size: 0.75rem;
+            text-transform: uppercase; letter-spacing: 6px;
+            display: block; margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-mesh"></div>
+
+    <!-- Barra de Navegación con tu nuevo diseño -->
+    <nav class="navbar">
+        <img src="https://i.postimg.cc/W30Rr4bt/Canal-C.png" class="nav-logo" alt="Canal C Logo">
+        <div class="nav-links">
+            <a href="#">Inicio</a>
+            <a href="#vision">Nosotros</a>
+            <a href="#faq">Ayuda</a>
+            <a href="./stream" class="text-sky-400">En Vivo</a>
+            <a href="#">GUIA TV</a>
+        </div>
+    </nav>
+
+    <!-- Hero de Bienvenida con LOGO -->
+    <section class="min-h-screen flex items-center justify-center pt-40">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <span class="section-label">Plataforma de Medios Avanzada</span>
+            
+            <div class="hero-logo-container">
+                <img src="https://i.postimg.cc/W30Rr4bt/Canal-C.png" alt="Canal C del Zulia Logo Grande" class="hero-logo">
+            </div>
+
+            <p class="text-slate-400 text-lg md:text-2xl font-light max-w-3xl mx-auto mb-12 leading-relaxed">
+                Conectamos a todo el Zulia con el mejor contenido. Tecnología moderna, gente real y la mejor televisión digital para ti.
+            </p>
+            <div class="flex flex-wrap justify-center gap-6">
+                <a href="#vision" class="btn-main">Conócenos <i class="fas fa-arrow-right"></i></a>
+                <a href="#contacto" class="px-10 py-4 border border-white/20 rounded-14 font-bold text-xs uppercase tracking-[3px] hover:bg-white/5 transition">Escríbenos</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Estadísticas de Impacto -->
+    <section class="py-20 bg-black/40 border-y border-white/5">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+            <div>
+                <h3 class="text-5xl font-black text-sky-400 mb-2">4K</h3>
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Imagen Nítida</p>
+            </div>
+            <div>
+                <h3 class="text-5xl font-black text-sky-400 mb-2">24/7</h3>
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Siempre al Aire</p>
+            </div>
+            <div>
+                <h3 class="text-5xl font-black text-sky-400 mb-2">∞</h3>
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Para Todo el Mundo</p>
+            </div>
+            <div>
+                <h3 class="text-5xl font-black text-sky-400 mb-2">100%</h3>
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Calidad Zuliana</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visión y Tecnología -->
+    <section id="vision" class="py-32 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-24 items-center">
+                <div>
+                    <span class="section-label">Nuestra Visión</span>
+                    <h2 class="text-5xl font-bold font-['Oswald'] uppercase mb-10 leading-tight">Hacemos las cosas <br><span class="text-sky-400">Diferente</span></h2>
+                    <div class="space-y-12">
+                        <div class="flex gap-8">
+                            <div class="w-12 h-12 bg-sky-500/10 rounded-xl flex items-center justify-center border border-sky-500/30">
+                                <i class="fas fa-tv text-sky-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold mb-2 uppercase">Televisión Moderna</h4>
+                                <p class="text-slate-400 text-sm leading-relaxed">Usamos lo mejor en software y video para que nos veas en cualquier celular o tablet sin problemas.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-8">
+                            <div class="w-12 h-12 bg-sky-500/10 rounded-xl flex items-center justify-center border border-sky-500/30">
+                                <i class="fas fa-heart text-sky-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold mb-2 uppercase">Hecho en el Zulia</h4>
+                                <p class="text-slate-400 text-sm leading-relaxed">Apoyamos lo nuestro. Queremos que el talento de aquí brille en todas partes.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="absolute inset-0 bg-sky-500/10 blur-[100px] rounded-full"></div>
+                    <div class="glass-card p-12 relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-12">
+                            <h4 class="text-3xl font-bold font-['Oswald'] uppercase">Nuestra <br>Meta</h4>
+                            <i class="fas fa-star text-4xl text-sky-500/20"></i>
+                        </div>
+                        <p class="text-slate-300 italic text-lg leading-loose mb-8">
+                            "Ser el canal favorito de todos los zulianos, usando la mejor tecnología para que el mundo sepa de qué estamos hechos."
+                        </p>
+                        <div class="h-1 w-24 bg-sky-500"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preguntas Frecuentes (FAQ) -->
+    <section id="faq" class="py-32 px-6 bg-slate-900/10">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-20">
+                <span class="section-label">Lo que todos preguntan</span>
+                <h2 class="text-5xl font-bold font-['Oswald'] uppercase">Dudas <span class="text-sky-400">Rápidas</span></h2>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="glass-card p-8">
+                    <h5 class="text-sky-400 font-bold uppercase text-xs tracking-widest mb-4">¿Cristian Hilos es el dueño del canal?</h5>
+                    <p class="text-slate-300 text-sm leading-relaxed"><strong>¡Sí!</strong> Cristian Hilos es el creador y el dueño de todo este proyecto. Él es quien se encarga de que toda la tecnología y el contenido funcionen al 100%.</p>
+                </div>
+                <div class="glass-card p-8">
+                    <h5 class="text-sky-400 font-bold uppercase text-xs tracking-widest mb-4">¿Puedo subir mis videos al canal?</h5>
+                    <p class="text-slate-300 text-sm leading-relaxed"><strong>¡Claro que sí!</strong> Si tienes un video bueno que quieras mostrar, escríbenos y te decimos cómo mandarlo para que salga en nuestra plataforma.</p>
+                </div>
+                <div class="glass-card p-8">
+                    <h5 class="text-sky-400 font-bold uppercase text-xs tracking-widest mb-4">¿Cómo puedo anunciar mi negocio?</h5>
+                    <p class="text-slate-300 text-sm leading-relaxed">Es súper fácil. Tenemos espacios para que tu marca salga en los videos y en nuestra página web. Solo contáctanos por correo o redes sociales.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Perfil del Director (Cristian Hilos) -->
+    <section class="py-32 px-6">
+        <div class="max-w-5xl mx-auto glass-card p-1 items-center overflow-hidden">
+            <div class="bg-black/40 p-12 md:p-20 flex flex-col md:flex-row items-center gap-16">
+                <div class="relative">
+                    <div class="w-56 h-56 bg-gradient-to-tr from-sky-500 to-blue-800 rounded-3xl rotate-6 absolute inset-0 -z-10 blur-xl opacity-30"></div>
+                    <div class="w-56 h-56 bg-slate-800 rounded-3xl flex items-center justify-center border border-white/10 shadow-2xl">
+                        <i class="fas fa-terminal text-8xl text-sky-500"></i>
+                    </div>
+                </div>
+                <div class="text-center md:text-left flex-1">
+                    <span class="text-sky-500 font-black uppercase text-[10px] tracking-[4px]">Creador y Dueño</span>
+                    <h3 class="text-5xl font-bold font-['Oswald'] uppercase my-4">Cristian Hilos</h3>
+                    <p class="text-slate-400 text-lg font-light leading-relaxed mb-8">
+                        Cristian es el cerebro detrás de Canal C. Es un experto en tecnología y diseño que decidió crear este espacio para que el Zulia tenga un canal de nivel mundial.
+                    </p>
+                    <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <span class="px-5 py-2 bg-sky-500/10 rounded-full border border-sky-500/20 text-[10px] font-bold uppercase tracking-widest text-sky-400">Dueño de Canal C</span>
+                        <span class="px-5 py-2 bg-sky-500/10 rounded-full border border-sky-500/20 text-[10px] font-bold uppercase tracking-widest text-sky-400">Tech Lead</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacto Corporativo -->
+    <section id="contacto" class="py-32 px-6">
+        <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12">
+            <div class="glass-card p-12 flex flex-col justify-center">
+                <h2 class="text-4xl font-bold font-['Oswald'] uppercase mb-6">¿Quieres <br><span class="text-sky-400">Hablar con nosotros?</span></h2>
+                <p class="text-slate-500 mb-10 font-light">Para cualquier cosa, dudas o para mandar tus videos, escríbele directo a Cristian aquí:</p>
+                <a href="mailto:cristianbracho904@gmail.com" class="text-2xl font-bold text-white hover:text-sky-400 transition underline decoration-sky-500 underline-offset-8">cristianbracho904@gmail.com</a>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <a href="#" class="glass-card p-8 flex flex-col items-center justify-center gap-4 hover:bg-sky-600 transition group">
+                    <i class="fab fa-instagram text-3xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Instagram</span>
+                </a>
+                <a href="#" class="glass-card p-8 flex flex-col items-center justify-center gap-4 hover:bg-red-600 transition group">
+                    <i class="fab fa-youtube text-3xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">YouTube</span>
+                </a>
+                <a href="#" class="glass-card p-8 flex flex-col items-center justify-center gap-4 hover:bg-blue-700 transition group">
+                    <i class="fab fa-facebook text-3xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Facebook</span>
+                </a>
+                <a href="#" class="glass-card p-8 flex flex-col items-center justify-center gap-4 hover:bg-sky-400 transition group">
+                    <i class="fab fa-twitter text-3xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Twitter</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer de Elite -->
+    <footer class="py-16 text-center border-t border-white/5 bg-black/60">
+        <img src="https://i.postimg.cc/W30Rr4bt/Canal-C.png" class="h-10 mx-auto mb-8 opacity-40 grayscale hover:grayscale-0 transition duration-1000" alt="Logo Footer">
+        
+        <div class="flex flex-col items-center gap-2">
+            <div class="flex justify-center text-slate-500 text-[10px] font-bold uppercase tracking-[2px]">
+                <a href="#" class="hover:text-white transition px-2 border-r border-white/10 leading-none">Negocios</a>
+                <a href="#" class="hover:text-white transition px-2 border-r border-white/10 leading-none">Privacidad</a>
+                <a href="#" class="hover:text-white transition px-2 leading-none">Términos</a>
+            </div>
+            
+            <p class="text-slate-700 text-[9px] uppercase tracking-[4px] font-black mt-2">
+                &copy; 2025 - 2026 CANAL C GROUP | INNOVACIÓN ZULIANA
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
