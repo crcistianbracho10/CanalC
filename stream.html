@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canal C HD - En Vivo</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet">
+    <script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@800&display=swap" rel="stylesheet">
+
+    <style>
+        body, html { margin: 0; padding: 0; background-color: #000; height: 100%; font-family: 'Inter', sans-serif; color: white; overflow: hidden; }
+        
+        /* NAVBAR CON ENLACES CENTRADOS */
+        .navbar {
+            position: absolute; top: 0; width: 100%; z-index: 150;
+            display: flex; flex-direction: column; align-items: center; padding: 20px 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+        .nav-logo { height: 40px; margin-bottom: 10px; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { color: #ccc; font-size: 0.85rem; transition: 0.3s; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
+        .nav-links a:hover { color: #38bdf8; }
+
+        /* PORTADA */
+        #main-cover {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.3) 100%), 
+                        url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn8Pnf2ibgsnKQI0QViV1ykHpzr_bgfmB2lA&s');
+            background-size: cover; background-position: center;
+            z-index: 100; display: flex; align-items: center; padding-left: 8%;
+            transition: opacity 0.6s ease;
+        }
+
+        .title-main { font-size: 3rem; font-weight: 900; line-height: 1; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: -2px; }
+
+        .btn-play-hero {
+            background: linear-gradient(to bottom, #9b3038, #6d1e25);
+            padding: 14px 45px; border-radius: 6px; font-weight: bold;
+            display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; color: white; font-size: 1rem;
+        }
+
+        /* REPRODUCTOR */
+        #video-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 200; background: #000; }
+        #embed-player { width: 100vw !important; height: 100vh !important; }
+
+        /* BOTÓN PLAY OPENCASTER */
+        .vjs-big-play-button {
+            background: linear-gradient(135deg, #e50914 0%, #764ba2 100%) !important;
+            border: 3px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 50% !important;
+            width: 80px !important; height: 80px !important;
+            line-height: 80px !important; margin-left: -40px !important; margin-top: -40px !important;
+        }
+
+        /* ENCABEZADO REPRODUCTOR (HUD) */
+        .video-hud {
+            position: absolute; top: 0; left: 0; width: 100%;
+            padding: 40px 60px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
+            z-index: 210; transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none;
+        }
+        .hud-hidden { opacity: 0; transform: translateY(-20px); }
+
+        .header-channel { font-family: 'Oswald', sans-serif; font-size: 2.2rem; color: #fff; line-height: 1; }
+        .header-program { font-family: 'Montserrat', sans-serif; color: #38bdf8; font-size: 1rem; text-transform: uppercase; margin-top: 5px; }
+
+        .btn-close {
+            position: absolute; top: 40px; right: 50px; width: 50px; height: 50px;
+            background: rgba(255,255,255,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: auto; z-index: 220; transition: 0.3s;
+        }
+        .btn-close:hover { background: #e50914; }
+
+        /* RECONEXIÓN */
+        .reconnecting-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 250; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .vjs-error-display { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" id="top-nav">
+        <img src="https://i.postimg.cc/W30Rr4bt/Canal-C.png" class="nav-logo" alt="Logo">
+        <div class="nav-links">
+            <a href="#">Inicio</a>
+            <a href="#">Nosotros</a>
+            <a href="#">Guía TV</a>
+            <a href="#">en vivo</a>
+        </div>
+    </nav>
+
+    <div id="main-cover">
+        <div>
+            <h1 class="title-main">Canal C HD</h1>
+            <div class="border border-white/40 inline-block px-2 py-0.5 rounded text-[10px] mb-6 font-bold uppercase tracking-[3px]">Señal HD</div>
+            <button class="btn-play-hero" onclick="abrirPlayer()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                REPRODUCIR
+            </button>
+        </div>
+        <div id="signal-label" class="absolute bottom-10 left-10 text-[11px] font-bold tracking-widest opacity-70"></div>
+    </div>
+
+    <div id="video-container">
+        <div id="reconnect-ui" class="reconnecting-overlay">
+            <img src="https://deportes.ksdjugfsddeports.com/latam.gif" style="width: 80px; margin-bottom: 20px;">
+            <div class="text-xl font-bold text-red-500 uppercase tracking-tighter">Señal No Disponible</div>
+            <p class="text-gray-400 text-sm">Reconectando con el servidor...</p>
+        </div>
+
+        <div id="video-hud" class="video-hud">
+            <div class="btn-close" onclick="cerrarPlayer()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div class="header-channel">CANAL C HD</div>
+            <div id="prog-titulo" class="header-program">Cargando Programación...</div>
+            <div id="prog-hora" class="text-gray-400 text-xs font-bold mt-1">--:-- - --:--</div>
+        </div>
+
+        <video id="embed-player" class="video-js vjs-default-skin" controls preload="auto" playsinline></video>
+    </div>
+
+    <script>
+        const STREAM_URL = "https://vs20.live.opencaster.com/cristianhilos_314b91b0/index.m3u8";
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        var player = videojs('embed-player', { liveui: true, fluid: false, fill: true });
+
+        // FUNCIÓN: Leer Programación desde archivo JSON
+        async function actualizarProgramacion() {
+            try {
+                const respuesta = await fetch('programacion.json');
+                const programas = await respuesta.json();
+
+                const ahora = new Date();
+                const horaActual = `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
+
+                let pEncontrado = { nombre: "Transmisión en Vivo", inicio: "00:00", fin: "23:59" };
+
+                programas.forEach(p => {
+                    if (horaActual >= p.inicio && horaActual < p.fin) {
+                        pEncontrado = p;
+                    }
+                });
+
+                document.getElementById('prog-titulo').innerText = pEncontrado.nombre;
+                document.getElementById('prog-hora').innerText = `${pEncontrado.inicio} - ${pEncontrado.fin}`;
+            } catch (e) {
+                console.log("Esperando archivo programacion.json...");
+            }
+        }
+
+        function abrirPlayer() {
+            document.getElementById('main-cover').style.display = 'none';
+            document.getElementById('top-nav').style.display = 'none';
+            document.getElementById('video-container').style.display = 'block';
+            player.src({ src: STREAM_URL, type: 'application/x-mpegURL' });
+            player.play();
+            actualizarProgramacion();
+        }
+
+        function cerrarPlayer() {
+            player.pause();
+            document.getElementById('video-container').style.display = 'none';
+            document.getElementById('main-cover').style.display = 'flex';
+            document.getElementById('top-nav').style.display = 'flex';
+        }
+
+        let hudTimer;
+        function mostrarHUD() {
+            const hud = document.getElementById('video-hud');
+            hud.classList.remove('hud-hidden');
+            clearTimeout(hudTimer);
+            hudTimer = setTimeout(() => hud.classList.add('hud-hidden'), isMobile ? 5000 : 1000);
+        }
+
+        player.on('mousemove', mostrarHUD);
+        player.on('touchstart', mostrarHUD);
+        
+        player.on('error', function() {
+            document.getElementById('reconnect-ui').style.display = 'flex';
+            setTimeout(() => {
+                player.src({ src: STREAM_URL + "?t=" + new Date().getTime(), type: 'application/x-mpegURL' });
+                player.load();
+                player.play().then(() => document.getElementById('reconnect-ui').style.display = 'none');
+            }, 5000);
+        });
+
+        async function checkSignal() {
+            const label = document.getElementById('signal-label');
+            try {
+                const res = await fetch(STREAM_URL, { method: 'HEAD' });
+                label.innerHTML = res.ok ? "<span class='text-green-500'>● SEÑAL ABIERTA</span>" : "<span class='text-red-500'>○ SEÑAL CERRADA</span>";
+            } catch (e) { label.innerText = ""; }
+        }
+
+        setInterval(actualizarProgramacion, 30000);
+        checkSignal();
+    </script>
+</body>
+</html>
