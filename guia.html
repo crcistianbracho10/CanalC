@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Guía Electrónica Global | Canal C</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #38bdf8;
+            --bg-dark: #020617;
+            --surface: #0f172a;
+            --hour-width: 220px; /* Un poco más ancho para mejor visibilidad */
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: #e2e8f0; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .bg-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -10%, #1e40af 0%, transparent 60%);
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .nav-glass {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0.8rem 2rem;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .player-frame {
+            background: #000;
+            border: 4px solid #1e293b;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16 / 9;
+        }
+        
+        #video-player { width: 100%; height: 100%; object-fit: contain; }
+
+        .video-error-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; z-index: 10; text-align: center; padding: 20px;
+        }
+
+        /* EPG Full Width */
+        .epg-container {
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .epg-header {
+            display: flex;
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .grid-viewport {
+            display: flex;
+            width: 100%; /* Ocupa todo el espacio */
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+            scroll-behavior: smooth;
+        }
+        .grid-viewport::-webkit-scrollbar { height: 8px; }
+        .grid-viewport::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        .time-strip {
+            display: flex;
+            height: 60px;
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .hour-cell {
+            min-width: var(--hour-width);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 700;
+            font-family: 'Oswald', sans-serif;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .programs-strip {
+            display: flex;
+            position: relative;
+            height: 160px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent calc(var(--hour-width) - 1px),
+                rgba(255, 255, 255, 0.03) calc(var(--hour-width) - 1px),
+                rgba(255, 255, 255, 0.03) var(--hour-width)
+            );
+        }
+
+        .program-block {
+            position: absolute;
+            height: 90%;
+            top: 5%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(30, 41, 59, 0.4);
+            overflow: hidden;
+            margin-right: 4px;
+        }
+
+        .program-block:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .program-block.active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.6));
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.5);
+            z-index: 10;
+        }
+
+        .live-tag {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+        }
+
+        .country-selector {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border-radius: 16px; padding: 1.5rem; margin-top: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        select {
+            background: #020617; color: white; border: 1px solid var(--primary);
+            padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
+        }
+
+        .live-badge {
+            background: #ef4444; color: white; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.65rem; font-weight: 900; letter-spacing: 1px;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+
+    <nav class="nav-glass">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <img src="https://i.postimg.cc/W30Rr4bt/Canal-C.png" class="h-10" alt="Canal C">
+                <div class="h-6 w-[1px] bg-white/20"></div>
+                <span class="text-xs font-bold text-sky-400 uppercase tracking-widest">Digital Zulia</span>
+            </div>
+            <div class="flex items-center gap-8">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-[3px]">Señal Internacional</span>
+                    <span id="digital-clock" class="text-xl font-['Oswald'] font-bold text-white tracking-widest leading-none">00:00:00 AM</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        
+        <!-- PLAYER SECTION -->
+        <div class="grid lg:grid-cols-2 gap-12 items-center mb-12">
+            <div class="player-frame">
+                <div id="video-error" class="video-error-overlay">
+                    <i class="fas fa-exclamation-triangle text-sky-400 text-4xl mb-4"></i>
+                    <h3 class="text-white font-bold text-lg mb-2">Señal no disponible</h3>
+                    <p class="text-slate-400 text-sm">Error en la ruta de transmisión HLS.</p>
+                </div>
+                <video id="video-player" controls autoplay muted playsinline poster="https://i.postimg.cc/W30Rr4bt/Canal-C.png"></video>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <span class="live-badge mb-4 inline-block">● EN DIRECTO</span>
+                    <h1 id="hero-title" class="text-5xl lg:text-6xl font-bold font-['Oswald'] uppercase text-white leading-[1.1]">Sincronizando...</h1>
+                    <p id="hero-desc" class="text-slate-400 text-lg mt-4 max-w-md">Cargando la parrilla de programación...</p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1 tracking-widest">En este momento</p>
+                        <p id="hero-time" class="text-sky-400 font-bold text-xl">--:--</p>
+                    </div>
+                    <div class="bg-white/5 p-5 rounded-2xl border border-white/5">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1 tracking-widest">Próximo programa</p>
+                        <p id="next-prog" class="text-white font-bold text-xl truncate">...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EPG FULL WIDTH -->
+        <div class="mb-6 flex justify-between items-end">
+            <div>
+                <h2 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em] mb-2">Guía de Programación 24 Horas</h2>
+                <div class="h-1 w-20 bg-sky-500 rounded-full"></div>
+            </div>
+            <div class="text-[10px] text-slate-500 font-bold italic">Desliza para ver más horas →</div>
+        </div>
+
+        <div class="epg-container">
+            <!-- Encabezado de Horas (Sin columna de logo lateral) -->
+            <div class="epg-header">
+                <div class="grid-viewport" id="time-viewport">
+                    <div class="time-strip" id="time-header"></div>
+                </div>
+            </div>
+            
+            <!-- Fila de Programas (Sin columna de logo lateral) -->
+            <div class="grid-viewport" id="program-viewport">
+                <div class="programs-strip" id="epg-row" style="width: 5280px;">
+                    <!-- Los bloques se posicionan aquí -->
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIG -->
+        <div class="country-selector flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-400 border border-sky-500/20">
+                    <i class="fas fa-globe text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-white">Sincronización Regional</h3>
+                    <p class="text-sm text-slate-400">Ajusta la guía a tu hora local preferida.</p>
+                </div>
+            </div>
+            <div class="bg-black/40 p-2 rounded-xl border border-white/5">
+                <select id="country-select" onchange="changeTimezone()" class="outline-none">
+                    <option value="-4" selected>🇻🇪 Venezuela (UTC-4)</option>
+                    <option value="-5">🇨🇴 Colombia / 🇵🇪 Perú (UTC-5)</option>
+                    <option value="-3">🇦🇷 Argentina / 🇨L Chile (UTC-3)</option>
+                    <option value="-6">🇲🇽 México (UTC-6)</option>
+                    <option value="1">🇪🇸 España (UTC+1)</option>
+                </select>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="py-12 text-center border-t border-white/5">
+        <p class="text-[10px] font-black text-slate-600 uppercase tracking-[8px]">Canal C del Zulia &copy; 2026</p>
+    </footer>
+
+    <script>
+        const video = document.getElementById('video-player');
+        const videoSrc = 'https://vs20.live.opencaster.com/cristianhilos_314b91b0/index.m3u8';
+        const HOUR_WIDTH = 220;
+
+        // Cargar HLS
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.ERROR, (e, data) => { if(data.fatal) document.getElementById('video-error').style.display = 'flex'; });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+        }
+
+        let userOffset = -4;
+
+        const PROGRAMACION = [
+            { start: 23, end: 4, name: "TVES Nacional", desc: "Programación nacional en cortesía de TVES.", badge: "Cortesía TVES" },
+            { start: 4, end: 6, name: "Canal C: Madrugada", desc: "Producción original con lo mejor de nuestra región.", badge: "Producción Canal C" },
+            { start: 6, end: 8, name: "100% Noticias", desc: "Noticiero matutino en alianza con Canal 11.", badge: "Informativo" },
+            { start: 8, end: 13, name: "Mañana de Canal C", desc: "Música, cultura y entrevistas en vivo desde el Zulia.", badge: "Variedades" },
+            { start: 13, end: 14, name: "Zulia en Caliente", desc: "Análisis político de la mano de Canal 11.", badge: "Opinión" },
+            { start: 14, end: 15, name: "Maracaibo Irreverente", desc: "El programa más visto de la televisión regional.", badge: "Tendencia" },
+            { start: 15, end: 16, name: "Tarde de Canal C", desc: "Contenido variado para toda la familia zuliana.", badge: "Original" },
+            { start: 16, end: 23, name: "Estelar Canal C", desc: "Grandes producciones y reportajes especiales.", badge: "Prime Time" }
+        ];
+
+        function formatTo12h(h) {
+            h = (h + 24) % 24;
+            const period = h >= 12 ? 'PM' : 'AM';
+            let hour = h % 12 || 12;
+            return `${hour}:00 ${period}`;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const clientTime = new Date(utc + (3600000 * userOffset));
+            let h = clientTime.getHours();
+            const m = clientTime.getMinutes().toString().padStart(2, '0');
+            const s = clientTime.getSeconds().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            document.getElementById('digital-clock').innerText = `${h}:${m}:${s} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+
+        function changeTimezone() {
+            userOffset = parseFloat(document.getElementById('country-select').value);
+            renderEPG();
+        }
+
+        function renderEPG() {
+            const row = document.getElementById('epg-row');
+            const header = document.getElementById('time-header');
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const clientDate = new Date(utc + (3600000 * userOffset));
+            const cHour = clientDate.getHours();
+            const cMin = clientDate.getMinutes();
+
+            header.innerHTML = '';
+            row.innerHTML = '';
+
+            // 1. Generar encabezado de 24 horas
+            for (let i = 0; i < 24; i++) {
+                const div = document.createElement('div');
+                div.className = 'hour-cell';
+                div.innerText = formatTo12h(i);
+                header.appendChild(div);
+            }
+
+            // 2. Generar bloques de programas
+            PROGRAMACION.forEach((p, idx) => {
+                const diff = userOffset - (-4);
+                let sAdj = (p.start + diff + 24) % 24;
+                let eAdj = (p.end + diff + 24) % 24;
+
+                let duration = eAdj - sAdj;
+                if (duration <= 0) duration += 24;
+
+                const leftPos = sAdj * HOUR_WIDTH;
+                const widthPos = duration * HOUR_WIDTH;
+
+                let isActive = false;
+                if (sAdj < eAdj) isActive = cHour >= sAdj && cHour < eAdj;
+                else isActive = cHour >= sAdj || cHour < eAdj;
+
+                if (isActive) {
+                    document.getElementById('hero-title').innerText = p.name;
+                    document.getElementById('hero-desc').innerText = p.desc;
+                    document.getElementById('hero-time').innerText = `${formatTo12h(sAdj)} - ${formatTo12h(eAdj)}`;
+                    const next = PROGRAMACION[(idx + 1) % PROGRAMACION.length];
+                    document.getElementById('next-prog').innerText = next.name;
+                }
+
+                const card = document.createElement('div');
+                card.className = `program-block ${isActive ? 'active' : ''}`;
+                card.style.left = `${leftPos}px`;
+                card.style.width = `${widthPos - 4}px`; // Un pequeño margen entre bloques
+                card.innerHTML = `
+                    ${isActive ? '<span class="live-tag">AHORA</span>' : ''}
+                    <span class="text-[10px] font-black text-sky-400 mb-2 block tracking-wider">${formatTo12h(sAdj)}</span>
+                    <h4 class="font-bold text-sm uppercase leading-tight mb-2 ${isActive ? 'text-white' : 'text-slate-300'}">${p.name}</h4>
+                    <span class="text-[9px] bg-sky-500/10 text-sky-400/80 px-2 py-0.5 rounded border border-sky-500/20 uppercase font-bold">${p.badge}</span>
+                `;
+                row.appendChild(card);
+            });
+
+            // 3. Posicionar el scroll al cargar
+            const scrollPos = (cHour * HOUR_WIDTH) + (cMin / 60 * HOUR_WIDTH) - (window.innerWidth / 2.5);
+            document.getElementById('program-viewport').scrollLeft = scrollPos;
+            document.getElementById('time-viewport').scrollLeft = scrollPos;
+        }
+
+        // Sincronizar scroll entre cabecera y cuerpo
+        const pView = document.getElementById('program-viewport');
+        const tView = document.getElementById('time-viewport');
+        pView.addEventListener('scroll', () => { tView.scrollLeft = pView.scrollLeft; });
+
+        window.onload = () => { renderEPG(); updateClock(); };
+    </script>
+</body>
+</html>
