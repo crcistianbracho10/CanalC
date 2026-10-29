@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Señal en Vivo - Canal C del Zulia</title>
+  <meta name="theme-color" content="#020817">
+
+  <!-- OvenPlayer CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.min.css">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #0c1c3c 0%, #020817 70%);
+      color: #f1f5f9;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* HEADER FIJO Y MENÚ DE NAVEGACIÓN */
+    header {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 14px 5%;
+      background: rgba(2, 8, 23, 0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .nav { max-width: 1200px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 19px; letter-spacing: -0.5px; }
+    .logo img { width: 40px; height: 40px; object-fit: contain; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    
+    nav { display: flex; align-items: center; gap: 24px; }
+    nav a { color: #94a3b8; font-size: 15px; font-weight: 500; transition: color 0.2s ease; }
+    nav a:hover, nav a.active { color: #38bdf8; text-shadow: 0 0 12px rgba(56,189,248,0.5); }
+
+    .menu-toggle {
+      display: none; flex-direction: column; justify-content: space-between;
+      width: 28px; height: 20px; background: transparent; border: none; cursor: pointer; z-index: 1100;
+    }
+    .menu-toggle span { display: block; width: 100%; height: 2.5px; background: #f1f5f9; border-radius: 2px; }
+
+    /* CONTENEDOR PRINCIPAL */
+    .live-wrapper {
+      max-width: 900px; width: 90%; margin: 110px auto 50px auto; flex: 1;
+      display: flex; flex-direction: column; gap: 22px;
+    }
+
+    .top-live-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+    }
+
+    .badge-live {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
+      background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .badge-live span { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; box-shadow: 0 0 8px #ef4444; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+
+    .stream-selector { display: flex; gap: 6px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); }
+    .stream-btn {
+      padding: 6px 16px; border-radius: 9px; border: none;
+      background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s ease;
+    }
+    .stream-btn:hover { color: #fff; }
+    .stream-btn.active { background: #0284c7; color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4); }
+
+    /* REPRODUCTOR */
+    .player-container {
+      position: relative; width: 100%; aspect-ratio: 16/9; background: #000;
+      border-radius: 20px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(2, 132, 199, 0.15);
+    }
+
+    #ovenplayer {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    iframe { width: 100%; height: 100%; border: none; outline: none; }
+
+    /* TARJETA DE PROGRAMA ACTUAL */
+    .current-info-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 16px; padding: 22px 26px;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .current-header { display: flex; justify-content: space-between; align-items: center; }
+    .label { color: #38bdf8; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+    .current-time-badge { background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.25); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .current-details h3 { font-size: 21px; color: #fff; font-weight: 600; margin-top: 4px; }
+    .current-details p { color: #94a3b8; font-size: 13.5px; margin-top: 2px; }
+
+    .show-progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+    .show-progress-fill { height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); width: 0%; transition: width 0.5s ease; }
+
+    /* FOOTER */
+    footer { padding: 24px 5%; border-top: 1px solid rgba(56, 189, 248, 0.08); background: rgba(2, 8, 23, 0.5); text-align: center; margin-top: auto; }
+    footer p { color: #64748b; font-size: 13px; }
+
+    @media (max-width: 850px) {
+      .menu-toggle { display: flex; }
+      nav {
+        position: absolute; top: 100%; left: 0; width: 100%;
+        background: rgba(2, 8, 23, 0.98); backdrop-filter: blur(12px);
+        flex-direction: column; align-items: center; padding: 0; gap: 0; display: none;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      }
+      nav.active { display: flex; padding: 24px 0; gap: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER Y MENÚ DE NAVEGACIÓN COMPLETO -->
+  <header>
+    <div class="nav">
+      <a href="index.html" class="logo">
+        <img src="https://i.postimg.cc/mrp5CGmj/Canal-C-del-Zulia-online.png" alt="Canal C del Zulia">
+        <span>Canal C del Zulia</span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="navMenu">
+        <a href="index.html" class="nav-item">Inicio</a>
+        <a href="en-vivo.html" class="nav-item active">En vivo</a>
+        <a href="index.html#programacion" class="nav-item">Programación</a>
+        <a href="index.html#nosotros" class="nav-item">Sobre nosotros</a>
+        <a href="votar.html" class="nav-item">Votar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="live-wrapper">
+    <div class="top-live-bar">
+      <div class="badge-live"><span></span>EN DIRECTO</div>
+      <div class="stream-selector">
+        <button class="stream-btn active" id="btnVen" onclick="cambiarStream('ven')">VEN</button>
+        <button class="stream-btn" id="btnInc" onclick="cambiarStream('inc')">INC</button>
+      </div>
+    </div>
+
+    <!-- Contenedor del Reproductor -->
+    <div class="player-container" id="contenedorPrincipal"></div>
+
+    <!-- Tarjeta del programa actual -->
+    <div class="current-info-card">
+      <div class="current-header">
+        <div class="label">Al aire ahora</div>
+        <div class="current-time-badge" id="badgeHorario">--:--</div>
+      </div>
+      <div class="current-details">
+        <h3 id="programaActual">Cargando programación...</h3>
+        <p id="horarioActual">Sincronizando hora de Venezuela...</p>
+      </div>
+      <div class="show-progress-track">
+        <div class="show-progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2024 - 2026 Canal C del Zulia. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- OvenPlayer JS Library -->
+  <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
+
+  <script>
+    // Menú hamburguesa móvil
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+
+    let player = null;
+    const STREAM_URL = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/chunks.m3u8";
+    const URL_VENEZUELA = "https://canalcdelzulia-fhd-lyart.vercel.app/embed?site=canalc.vercel.app";
+
+    const contenedor = document.getElementById('contenedorPrincipal');
+    const btnVen = document.getElementById('btnVen');
+    const btnInc = document.getElementById('btnInc');
+
+    function cambiarStream(tipo) {
+      if (tipo === 'ven') {
+        btnVen.classList.add('active');
+        btnInc.classList.remove('active');
+
+        if (player) {
+          player.remove();
+          player = null;
+        }
+
+        contenedor.innerHTML = `<iframe src="${URL_VENEZUELA}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+      } else {
+        btnInc.classList.add('active');
+        btnVen.classList.remove('active');
+
+        contenedor.innerHTML = `<div id="ovenplayer"></div>`;
+        initOvenPlayer();
+      }
+    }
+
+    function initOvenPlayer() {
+      if (player) {
+        player.remove();
+        player = null;
+      }
+
+      player = OvenPlayer.create("ovenplayer", {
+        sources: [
+          {
+            label: "Auto (HLS)",
+            type: "hls",
+            file: STREAM_URL
+          }
+        ],
+        autoStart: true,
+        autoStartWithMute: false,
+        showControlBar: true,
+        // Configuraciones automáticas para evitar buffer y asegurar fluidez óptima
+        lowLatency: false,       // Desactivado para mantener buffer seguro y evitar tirones
+        buffer: 30,              // Objetivo de almacenamiento en búfer (30 segundos estables)
+        maxBufferLength: 45,     // Límite máximo de buffer acumulado
+        startBuffer: 1           // Carga inicial rápida para que no demore en arrancar
+      });
+
+      player.on('error', function(error) {
+        console.error("Error en OvenPlayer:", error);
+      });
+    }
+
+    // Iniciar por defecto con VEN
+    document.addEventListener('DOMContentLoaded', () => {
+      cambiarStream('ven');
+    });
+
+    // Programación exacta corregida (Hora de Venezuela)
+    const parrilla = [
+      { inicio: 4.0,  fin: 6.0,  horaTxt: "04:00 AM – 06:00 AM", titulo: "sin programacion", desc: "." },
+      { inicio: 6.0,  fin: 8.0,  horaTxt: "06:00 AM – 08:00 AM", titulo: "Retransmisión del Canal 11 del Zulia", desc: "Señal regional matutina." },
+      { inicio: 8.0,  fin: 8.5,  horaTxt: "08:00 AM – 08:30 AM", titulo: "Secreto y Prosperidad", desc: "Bloque de motivación y bienestar personal." },
+      { inicio: 8.5,  fin: 10.0, horaTxt: "08:30 AM – 10:00 AM", titulo: "sin programacion", desc: "." },
+      { inicio: 10.0, fin: 10.5, horaTxt: "10:00 AM – 10:30 AM", titulo: "Magazine Zuliano", desc: "Actualidad, entrevistas y entretenimiento." },
+      { inicio: 10.5, fin: 11.0, horaTxt: "10:30 AM – 11:00 AM", titulo: "sin programacion", desc: "." },
+      { inicio: 11.0, fin: 13.0, horaTxt: "11:00 AM – 01:00 PM", titulo: "sin programacion", desc: "." },
+      { inicio: 13.0, fin: 15.0, horaTxt: "01:00 PM – 03:00 PM", titulo: "Zulia en Caliente / Maracaibo Irreverente", desc: "Retransmisión de opinión y análisis regional." },
+      { inicio: 15.0, fin: 16.0, horaTxt: "03:00 PM – 03:30 PM", titulo: "Magazine Zuliano (Tarde)", desc: "repeticion." },
+      { inicio: 16.0, fin: 17.0, horaTxt: "03:30 PM – 06:00 PM", titulo: "sin programacion", desc: "." },
+      { inicio: 17.0, fin: 19.0, horaTxt: "06:00 PM – 07:00 PM", titulo: "Retransmision teleSUR", desc: "retransmision de noticias." },
+      { inicio: 19.0, fin: 21.0, horaTxt: "07:00 PM – 09:00 PM", titulo: "sin programacion", desc: "." },
+      { inicio: 21.0, fin: 23.0, horaTxt: "09:00 PM – 11:00 PM", titulo: "sin programacion", desc: "." },
+      { inicio: 23.0, fin: 28.0, horaTxt: "11:00 PM – 04:00 AM", titulo: "Retransmisión Señal TVES", desc: "Programación especial nocturna." }
+    ];
+
+    function actualizarProgramaActual() {
+      const options = { timeZone: 'America/Caracas', hour: 'numeric', minute: 'numeric', hour12: false };
+      const formatter = new Intl.DateTimeFormat([], options);
+      const parts = formatter.formatToParts(new Date());
+      let hora = 0, minuto = 0;
+      
+      parts.forEach(p => {
+        if (p.type === 'hour') hora = parseInt(p.value);
+        if (p.type === 'minute') minuto = parseInt(p.value);
+      });
+
+      let tiempoActual = hora + (minuto / 60);
+      let programaActual = parrilla[parrilla.length - 1];
+
+      for (let p of parrilla) {
+        let finAjustado = p.fin;
+        let actualAjustado = tiempoActual;
+        
+        if (p.inicio > finAjustado) {
+          if (actualAjustado < p.fin) actualAjustado += 24;
+          finAjustado += 24;
+        }
+
+        if (actualAjustado >= p.inicio && actualAjustado < finAjustado) {
+          programaActual = p;
+          break;
+        }
+      }
+
+      let inicio = programaActual.inicio;
+      let fin = programaActual.fin;
+      if (fin < inicio) fin += 24;
+      let ajustadoActual = tiempoActual < inicio ? tiempoActual + 24 : tiempoActual;
+      
+      let porcentaje = ((ajustadoActual - inicio) / (fin - inicio)) * 100;
+      porcentaje = Math.max(0, Math.min(100, porcentaje));
+
+      document.getElementById('programaActual').textContent = programaActual.titulo;
+      document.getElementById('horarioActual').textContent = programaActual.desc;
+      document.getElementById('badgeHorario').textContent = programaActual.horaTxt;
+      document.getElementById('progressFill').style.width = `${porcentaje}%`;
+    }
+
+    actualizarProgramaActual();
+    setInterval(actualizarProgramaActual, 30000);
+  </script>
+</body>
+</html>
