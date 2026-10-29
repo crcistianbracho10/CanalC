@@ -6,6 +6,9 @@
   <title>Señal en Vivo - Canal C del Zulia</title>
   <meta name="theme-color" content="#020817">
 
+  <!-- Favicon Oficial -->
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/xCST0GYB/BCO-65d7ed72-e416-439b-b9e5-5308f2e30747-(1).png">
+
   <!-- OvenPlayer CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.min.css">
 
@@ -184,9 +187,8 @@
     menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 
     let player = null;
-    // URL WebRTC proporcionada (con soporte SSL wss:// recomendado para evitar bloqueos)
     const STREAM_WEBRTC = "wss://demo.ovenmediaengine.com:3333/app/stream";
-    const STREAM_HLS = "https://calm-forest-3478.cristianbracho904.workers.dev/live/index.m3u8";
+    const STREAM_HLS = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/playlist.m3u8";
     const URL_VENEZUELA = "https://canalcdelzulia-fhd-lyart.vercel.app/embed?site=canalc.vercel.app";
 
     const contenedor = document.getElementById('contenedorPrincipal');
