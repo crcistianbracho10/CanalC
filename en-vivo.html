@@ -184,7 +184,7 @@
     menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 
     let player = null;
-    const STREAM_URL = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/playlist.m3u8";
+    const STREAM_HLS = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/playlist.m3u8";
     const URL_VENEZUELA = "https://canalcdelzulia-fhd-lyart.vercel.app/embed?site=canalc.vercel.app";
 
     const contenedor = document.getElementById('contenedorPrincipal');
@@ -219,24 +219,30 @@
 
       player = OvenPlayer.create("ovenplayer", {
         sources: [
+          // Si el servidor de streaming soporta WebRTC nativo, puedes colocarlo primero aquí. 
+          // Como respaldo universal para HLS optimizado con menor buffer para redes lentas:
           {
-            label: "Auto (HLS)",
+            label: "Optimizado (HLS)",
             type: "hls",
-            file: STREAM_URL
+            file: STREAM_HLS
           }
         ],
         autoStart: true,
         autoStartWithMute: false,
         showControlBar: true,
+        // Configuraciones especiales de bajo consumo de buffer para conexiones lentas
         hlsConfig: {
           enableWorker: true,
-          lowLatencyMode: false,
-          backBufferLength: 30
+          lowLatencyMode: true,          // Activa modo de menor latencia y respuesta rápida
+          maxBufferLength: 15,           // Reduce el buffer acumulado para conexiones lentas (evita sobrecarga)
+          maxMaxBufferLength: 30,
+          liveSyncDurationCount: 3,      // Sincroniza más cerca del borde en vivo
+          liveMaxLatencyDurationCount: 7
         }
       });
 
       player.on('error', function(error) {
-        console.error("Error en OvenPlayer:", error);
+        console.error("Error en OvenPlayer optimizado:", error);
       });
     }
 
@@ -245,7 +251,7 @@
       cambiarStream('ven');
     });
 
-    // Programación temporal actualizada
+    // Programación actual
     const parrilla = [
       { inicio: 4.0,  fin: 6.0,  horaTxt: "04:00 AM – 06:00 AM", titulo: "sin programacion", desc: "." },
       { inicio: 6.0,  fin: 8.0,  horaTxt: "06:00 AM – 08:00 AM", titulo: "Retransmisión del Canal 11 del Zulia", desc: "Señal regional matutina." },
