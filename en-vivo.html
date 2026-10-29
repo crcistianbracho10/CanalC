@@ -172,6 +172,8 @@
     <p>© 2024 - 2026 Canal C del Zulia. Todos los derechos reservados.</p>
   </footer>
 
+  <!-- HLS.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <!-- OvenPlayer JS Library -->
   <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
 
@@ -226,11 +228,11 @@
         autoStart: true,
         autoStartWithMute: false,
         showControlBar: true,
-        // Configuraciones automáticas para evitar buffer y asegurar fluidez óptima
-        lowLatency: false,       // Desactivado para mantener buffer seguro y evitar tirones
-        buffer: 30,              // Objetivo de almacenamiento en búfer (30 segundos estables)
-        maxBufferLength: 45,     // Límite máximo de buffer acumulado
-        startBuffer: 1           // Carga inicial rápida para que no demore en arrancar
+        hlsConfig: {
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 30
+        }
       });
 
       player.on('error', function(error) {
@@ -243,7 +245,7 @@
       cambiarStream('ven');
     });
 
-    // Programación exacta corregida (Hora de Venezuela)
+    // Programación temporal actualizada
     const parrilla = [
       { inicio: 4.0,  fin: 6.0,  horaTxt: "04:00 AM – 06:00 AM", titulo: "sin programacion", desc: "." },
       { inicio: 6.0,  fin: 8.0,  horaTxt: "06:00 AM – 08:00 AM", titulo: "Retransmisión del Canal 11 del Zulia", desc: "Señal regional matutina." },
@@ -253,9 +255,9 @@
       { inicio: 10.5, fin: 11.0, horaTxt: "10:30 AM – 11:00 AM", titulo: "sin programacion", desc: "." },
       { inicio: 11.0, fin: 13.0, horaTxt: "11:00 AM – 01:00 PM", titulo: "sin programacion", desc: "." },
       { inicio: 13.0, fin: 15.0, horaTxt: "01:00 PM – 03:00 PM", titulo: "Zulia en Caliente / Maracaibo Irreverente", desc: "Retransmisión de opinión y análisis regional." },
-      { inicio: 15.0, fin: 16.0, horaTxt: "03:00 PM – 03:30 PM", titulo: "Magazine Zuliano (Tarde)", desc: "repeticion." },
-      { inicio: 16.0, fin: 17.0, horaTxt: "03:30 PM – 06:00 PM", titulo: "sin programacion", desc: "." },
-      { inicio: 17.0, fin: 19.0, horaTxt: "06:00 PM – 07:00 PM", titulo: "Retransmision teleSUR", desc: "retransmision de noticias." },
+      { inicio: 15.0, fin: 15.5, horaTxt: "03:00 PM – 03:30 PM", titulo: "Magazine Zuliano (Tarde)", desc: "repeticion." },
+      { inicio: 15.5, fin: 18.0, horaTxt: "03:30 PM – 06:00 PM", titulo: "sin programacion", desc: "." },
+      { inicio: 18.0, fin: 19.0, horaTxt: "06:00 PM – 07:00 PM", titulo: "Retransmision teleSUR", desc: "retransmision de noticias." },
       { inicio: 19.0, fin: 21.0, horaTxt: "07:00 PM – 09:00 PM", titulo: "sin programacion", desc: "." },
       { inicio: 21.0, fin: 23.0, horaTxt: "09:00 PM – 11:00 PM", titulo: "sin programacion", desc: "." },
       { inicio: 23.0, fin: 28.0, horaTxt: "11:00 PM – 04:00 AM", titulo: "Retransmisión Señal TVES", desc: "Programación especial nocturna." }
