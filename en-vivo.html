@@ -184,6 +184,8 @@
     menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 
     let player = null;
+    // URL WebRTC proporcionada (con soporte SSL wss:// recomendado para evitar bloqueos)
+    const STREAM_WEBRTC = "wss://demo.ovenmediaengine.com:3333/app/stream";
     const STREAM_HLS = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/playlist.m3u8";
     const URL_VENEZUELA = "https://canalcdelzulia-fhd-lyart.vercel.app/embed?site=canalc.vercel.app";
 
@@ -219,10 +221,13 @@
 
       player = OvenPlayer.create("ovenplayer", {
         sources: [
-          // Si el servidor de streaming soporta WebRTC nativo, puedes colocarlo primero aquí. 
-          // Como respaldo universal para HLS optimizado con menor buffer para redes lentas:
           {
-            label: "Optimizado (HLS)",
+            label: "WebRTC (Ultra Bajo Retraso)",
+            type: "webrtc",
+            file: STREAM_WEBRTC
+          },
+          {
+            label: "HLS (Respaldo)",
             type: "hls",
             file: STREAM_HLS
           }
@@ -230,19 +235,18 @@
         autoStart: true,
         autoStartWithMute: false,
         showControlBar: true,
-        // Configuraciones especiales de bajo consumo de buffer para conexiones lentas
+        webrtcConfig: {
+          timeout: 10
+        },
         hlsConfig: {
           enableWorker: true,
-          lowLatencyMode: true,          // Activa modo de menor latencia y respuesta rápida
-          maxBufferLength: 15,           // Reduce el buffer acumulado para conexiones lentas (evita sobrecarga)
-          maxMaxBufferLength: 30,
-          liveSyncDurationCount: 3,      // Sincroniza más cerca del borde en vivo
-          liveMaxLatencyDurationCount: 7
+          lowLatencyMode: true,
+          maxBufferLength: 15
         }
       });
 
       player.on('error', function(error) {
-        console.error("Error en OvenPlayer optimizado:", error);
+        console.error("Error en OvenPlayer:", error);
       });
     }
 
