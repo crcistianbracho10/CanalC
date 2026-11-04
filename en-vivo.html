@@ -9,8 +9,8 @@
   <!-- Favicon Oficial -->
   <link rel="icon" type="image/png" href="https://i.postimg.cc/xCST0GYB/BCO-65d7ed72-e416-439b-b9e5-5308f2e30747-(1).png">
 
-  <!-- OvenPlayer CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.min.css">
+  <!-- HLS.js para el reproductor HLS -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -72,25 +72,90 @@
     .stream-btn:hover { color: #fff; }
     .stream-btn.active { background: #0284c7; color: #fff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4); }
 
-    /* REPRODUCTOR */
+    /* CONTENEDOR DEL REPRODUCTOR */
     .player-container {
       position: relative; width: 100%; aspect-ratio: 16/9; background: #000;
-      border-radius: 20px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.2);
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(2, 132, 199, 0.15);
-    }
-
-    #ovenplayer {
-      width: 100% !important;
-      height: 100% !important;
+      border-radius: 16px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.3);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(2, 132, 199, 0.25);
     }
     iframe { width: 100%; height: 100%; border: none; outline: none; }
+
+    /* ESTILOS DEL REPRODUCTOR YT CON DETALLES EN AZUL */
+    .yt-player {
+      position: relative; width: 100%; height: 100%; background-color: #000;
+      user-select: none; display: flex; align-items: center; justify-content: center;
+    }
+
+    .yt-player video {
+      width: 100%; height: 100%; display: block; object-fit: contain; transition: object-fit 0.2s ease;
+    }
+
+    /* SPINNER CLÁSICO DE CARGA */
+    .yt-spinner {
+      position: absolute; width: 48px; height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none; z-index: 5; pointer-events: none;
+    }
+    .yt-player.buffering .yt-spinner { display: block; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .controls-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+      padding: 10px 15px 5px; opacity: 0; transition: opacity 0.3s ease;
+      display: flex; flex-direction: column; gap: 5px; z-index: 6;
+    }
+
+    .yt-player:hover .controls-overlay,
+    .yt-player.paused .controls-overlay,
+    .yt-player.menu-open .controls-overlay {
+      opacity: 1;
+    }
+
+    .progress-bar-container { width: 100%; height: 4px; background: rgba(255, 255, 255, 0.2); position: relative; }
+    .progress-bar { height: 100%; background: #0284c7; width: 100%; }
+
+    .controls-row { display: flex; justify-content: space-between; align-items: center; height: 40px; }
+    .controls-left, .controls-right { display: flex; align-items: center; gap: 15px; }
+
+    .btn-yt {
+      background: none; border: none; color: white; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; outline: none;
+      opacity: 0.9; transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-yt:hover { opacity: 1; transform: scale(1.1); color: #38bdf8; }
+    .btn-yt svg { width: 24px; height: 24px; fill: currentColor; }
+
+    .volume-container { display: flex; align-items: center; gap: 8px; }
+    .volume-slider {
+      width: 0px; opacity: 0; transition: width 0.2s ease, opacity 0.2s ease;
+      accent-color: #0284c7; cursor: pointer;
+    }
+    .volume-container:hover .volume-slider { width: 60px; opacity: 1; }
+
+    .live-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: #fff; }
+    .live-dot { width: 8px; height: 8px; background-color: #0284c7; border-radius: 50%; box-shadow: 0 0 8px #38bdf8; }
+
+    .settings-menu {
+      position: absolute; bottom: 55px; right: 15px;
+      background: rgba(28, 28, 28, 0.95); border-radius: 8px; padding: 8px 0; width: 200px;
+      display: none; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px); z-index: 10; font-size: 13px;
+    }
+    .settings-menu.active { display: flex; }
+    .menu-header { padding: 6px 15px; font-weight: bold; color: #aaa; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 4px; text-transform: uppercase; font-size: 11px; }
+    .menu-option { padding: 8px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+    .menu-option:hover { background: rgba(255, 255, 255, 0.1); }
+    .menu-option.selected { color: #38bdf8; font-weight: bold; }
 
     /* TARJETA DE PROGRAMA ACTUAL */
     .current-info-card {
       background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
       border: 1px solid rgba(56, 189, 248, 0.2);
-      border-radius: 16px; padding: 22px 26px;
-      display: flex; flex-direction: column; gap: 12px;
+      border-radius: 16px; padding: 22px 26px; display: flex; flex-direction: column; gap: 12px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     }
     .current-header { display: flex; justify-content: space-between; align-items: center; }
@@ -105,6 +170,8 @@
     /* FOOTER */
     footer { padding: 24px 5%; border-top: 1px solid rgba(56, 189, 248, 0.08); background: rgba(2, 8, 23, 0.5); text-align: center; margin-top: auto; }
     footer p { color: #64748b; font-size: 13px; }
+    .footer-links { display: flex; gap: 15px; font-size: 12px; color: #8fa4be; justify-content: center; margin-top: 8px; }
+    .footer-links a:hover { color: #38bdf8; text-decoration: underline; }
 
     @media (max-width: 850px) {
       .menu-toggle { display: flex; }
@@ -120,10 +187,10 @@
 </head>
 <body>
 
-  <!-- HEADER Y MENÚ DE NAVEGACIÓN COMPLETO -->
+  <!-- HEADER -->
   <header>
     <div class="nav">
-      <a href="https://canalc.vercel.app" class="logo">
+      <a href="index.html" class="logo">
         <img src="https://i.postimg.cc/mrp5CGmj/Canal-C-del-Zulia-online.png" alt="Canal C del Zulia">
         <span>Canal C del Zulia</span>
       </a>
@@ -133,7 +200,7 @@
       </button>
 
       <nav id="navMenu">
-        <a href="https://canalc.vercel.app" class="nav-item">Inicio</a>
+        <a href="index.html" class="nav-item">Inicio</a>
         <a href="en-vivo.html" class="nav-item active">En vivo</a>
         <a href="index.html#programacion" class="nav-item">Programación</a>
         <a href="index.html#nosotros" class="nav-item">Sobre nosotros</a>
@@ -147,8 +214,8 @@
     <div class="top-live-bar">
       <div class="badge-live"><span></span>EN DIRECTO</div>
       <div class="stream-selector">
-        <button class="stream-btn active" id="btnVen" onclick="cambiarStream('ven')">VEN</button>
-        <button class="stream-btn" id="btnInc" onclick="cambiarStream('inc')">INC</button>
+        <button class="stream-btn active" id="btnInc" onclick="cambiarStream('inc')">INC</button>
+        <button class="stream-btn" id="btnVen" onclick="cambiarStream('ven')">VEN</button>
       </div>
     </div>
 
@@ -173,92 +240,238 @@
 
   <footer>
     <p>© 2024 - 2026 Canal C del Zulia. Todos los derechos reservados.</p>
+    <div class="footer-links">
+      <a href="terminos.html">Términos y Condiciones</a>
+      <span>•</span>
+      <a href="privacidad.html">Políticas de Privacidad</a>
+    </div>
   </footer>
 
-  <!-- HLS.js Library -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <!-- OvenPlayer JS Library -->
-  <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
-
   <script>
-    // Menú hamburguesa móvil
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
     menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
 
-    let player = null;
-    const STREAM_WEBRTC = "wss://demo.ovenmediaengine.com:3333/app/stream";
     const STREAM_HLS = "https://lbgo.bozztv.com/ssh101/ssh101/canalczulia/playlist.m3u8";
     const URL_VENEZUELA = "https://canalcdelzulia-fhd-lyart.vercel.app/embed?site=canalc.vercel.app";
 
     const contenedor = document.getElementById('contenedorPrincipal');
     const btnVen = document.getElementById('btnVen');
     const btnInc = document.getElementById('btnInc');
+    let hlsInstance = null;
 
     function cambiarStream(tipo) {
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+
       if (tipo === 'ven') {
         btnVen.classList.add('active');
         btnInc.classList.remove('active');
-
-        if (player) {
-          player.remove();
-          player = null;
-        }
-
         contenedor.innerHTML = `<iframe src="${URL_VENEZUELA}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         btnInc.classList.add('active');
         btnVen.classList.remove('active');
 
-        contenedor.innerHTML = `<div id="ovenplayer"></div>`;
-        initOvenPlayer();
+        contenedor.innerHTML = `
+          <div class="yt-player buffering" id="player">
+            <div class="yt-spinner" id="ytSpinner"></div>
+            <video id="video" playsinline muted></video>
+
+            <!-- Menú de Ajustes -->
+            <div class="settings-menu" id="settingsMenu">
+              <div class="menu-header">Formato de pantalla</div>
+              <div class="menu-option selected" onclick="setAspectRatio('contain', this)">Normal (16:9)</div>
+              <div class="menu-option" onclick="setAspectRatio('cover', this)">Recortar / Llenar</div>
+              <div class="menu-option" onclick="setAspectRatio('fill', this)">Estirar</div>
+
+              <div class="menu-header" style="margin-top: 8px;">Velocidad</div>
+              <div class="menu-option" onclick="setSpeed(0.5, this)">0.5x</div>
+              <div class="menu-option selected" onclick="setSpeed(1.0, this)">Normal (1x)</div>
+              <div class="menu-option" onclick="setSpeed(1.25, this)">1.25x</div>
+              <div class="menu-option" onclick="setSpeed(1.5, this)">1.5x</div>
+              <div class="menu-option" onclick="setSpeed(2.0, this)">2.0x</div>
+            </div>
+
+            <!-- Superposición de Controles -->
+            <div class="controls-overlay">
+              <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+              </div>
+
+              <div class="controls-row">
+                <div class="controls-left">
+                  <button class="btn-yt" id="playBtn" title="Reproducir">
+                    <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  </button>
+
+                  <div class="volume-container">
+                    <button class="btn-yt" id="volumeBtn" title="Silenciar">
+                      <svg id="volHighIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                      <svg id="volMuteIcon" viewBox="0 0 24 24" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                    </button>
+                    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="0">
+                  </div>
+
+                  <div class="live-badge">
+                    <span class="live-dot"></span>
+                    <span>EN VIVO</span>
+                  </div>
+                </div>
+
+                <div class="controls-right">
+                  <button class="btn-yt" id="settingsBtn" title="Configuración">
+                    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                  </button>
+
+                  <button class="btn-yt" id="fullscreenBtn" title="Pantalla completa">
+                    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        initPlayerLogic();
       }
     }
 
-    function initOvenPlayer() {
-      if (player) {
-        player.remove();
-        player = null;
+    function initPlayerLogic() {
+      const player = document.getElementById('player');
+      const video = document.getElementById('video');
+      const playBtn = document.getElementById('playBtn');
+      const playIcon = document.getElementById('playIcon');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const volumeBtn = document.getElementById('volumeBtn');
+      const volHighIcon = document.getElementById('volHighIcon');
+      const volMuteIcon = document.getElementById('volMuteIcon');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsMenu = document.getElementById('settingsMenu');
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+      video.addEventListener('waiting', () => player.classList.add('buffering'));
+      video.addEventListener('playing', () => player.classList.remove('buffering'));
+      video.addEventListener('canplay', () => player.classList.remove('buffering'));
+
+      if (Hls.isSupported()) {
+        hlsInstance = new Hls({
+          liveSyncDurationCount: 3,       // Margen seguro tras la transmisión para no pausarse
+          liveMaxLatencyDurationCount: 10, // Permite acumulamiento de buffer sin cortes
+          enableWorker: true
+        });
+        hlsInstance.loadSource(STREAM_HLS);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(() => {});
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = STREAM_HLS;
+        video.addEventListener('loadedmetadata', () => {
+          video.play().catch(() => {});
+        });
       }
 
-      player = OvenPlayer.create("ovenplayer", {
-        sources: [
-          {
-            label: "WebRTC (Ultra Bajo Retraso)",
-            type: "webrtc",
-            file: STREAM_WEBRTC
-          },
-          {
-            label: "HLS (Respaldo)",
-            type: "hls",
-            file: STREAM_HLS
-          }
-        ],
-        autoStart: true,
-        autoStartWithMute: false,
-        showControlBar: true,
-        webrtcConfig: {
-          timeout: 10
-        },
-        hlsConfig: {
-          enableWorker: true,
-          lowLatencyMode: true,
-          maxBufferLength: 15
+      function togglePlay() {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      }
+
+      playBtn.addEventListener('click', togglePlay);
+      video.addEventListener('click', (e) => {
+        if (e.target === video) togglePlay();
+      });
+
+      video.addEventListener('play', () => {
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
+        player.classList.remove('paused');
+      });
+
+      video.addEventListener('pause', () => {
+        playIcon.style.display = 'block';
+        pauseIcon.style.display = 'none';
+        player.classList.add('paused');
+      });
+
+      volumeSlider.addEventListener('input', (e) => {
+        video.volume = e.target.value;
+        video.muted = (e.target.value === '0');
+        updateVolumeIcons();
+      });
+
+      volumeBtn.addEventListener('click', () => {
+        video.muted = !video.muted;
+        volumeSlider.value = video.muted ? 0 : (video.volume || 1);
+        updateVolumeIcons();
+      });
+
+      function updateVolumeIcons() {
+        if (video.muted || video.volume === 0) {
+          volHighIcon.style.display = 'none';
+          volMuteIcon.style.display = 'block';
+        } else {
+          volHighIcon.style.display = 'block';
+          volMuteIcon.style.display = 'none';
+        }
+      }
+
+      settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        settingsMenu.classList.toggle('active');
+        player.classList.toggle('menu-open', settingsMenu.classList.contains('active'));
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+          settingsMenu.classList.remove('active');
+          player.classList.remove('menu-open');
         }
       });
 
-      player.on('error', function(error) {
-        console.error("Error en OvenPlayer:", error);
+      window.setAspectRatio = function(mode, element) {
+        video.style.objectFit = mode;
+        element.parentNode.querySelectorAll('div').forEach(el => {
+          if (el.onclick && el.onclick.toString().includes('setAspectRatio')) {
+            el.classList.remove('selected');
+          }
+        });
+        element.classList.add('selected');
+      };
+
+      window.setSpeed = function(rate, element) {
+        video.playbackRate = rate;
+        element.parentNode.querySelectorAll('div').forEach(el => {
+          if (el.onclick && el.onclick.toString().includes('setSpeed')) {
+            el.classList.remove('selected');
+          }
+        });
+        element.classList.add('selected');
+      };
+
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          player.requestFullscreen().catch(err => alert(err.message));
+        } else {
+          document.exitFullscreen();
+        }
       });
     }
 
-    // Iniciar por defecto con VEN
+    // Iniciar por defecto con INC
     document.addEventListener('DOMContentLoaded', () => {
-      cambiarStream('ven');
+      cambiarStream('inc');
     });
 
     // Programación actual
     const parrilla = [
+      { inicio: 0.0,  fin: 4.0,  horaTxt: "12:00 AM – 04:00 AM", titulo: "Retransmisión Señal TVES", desc: "Programación especial nocturna." },
       { inicio: 4.0,  fin: 6.0,  horaTxt: "04:00 AM – 06:00 AM", titulo: "sin programacion", desc: "." },
       { inicio: 6.0,  fin: 8.0,  horaTxt: "06:00 AM – 08:00 AM", titulo: "Retransmisión del Canal 11 del Zulia", desc: "Señal regional matutina." },
       { inicio: 8.0,  fin: 8.5,  horaTxt: "08:00 AM – 08:30 AM", titulo: "Secreto y Prosperidad", desc: "Bloque de motivación y bienestar personal." },
@@ -271,8 +484,7 @@
       { inicio: 15.5, fin: 18.0, horaTxt: "03:30 PM – 06:00 PM", titulo: "sin programacion", desc: "." },
       { inicio: 18.0, fin: 19.0, horaTxt: "06:00 PM – 07:00 PM", titulo: "Retransmision teleSUR", desc: "retransmision de noticias." },
       { inicio: 19.0, fin: 21.0, horaTxt: "07:00 PM – 09:00 PM", titulo: "sin programacion", desc: "." },
-      { inicio: 21.0, fin: 23.0, horaTxt: "09:00 PM – 11:00 PM", titulo: "sin programacion", desc: "." },
-      { inicio: 23.0, fin: 28.0, horaTxt: "11:00 PM – 04:00 AM", titulo: "Retransmisión Señal TVES", desc: "Programación especial nocturna." }
+      { inicio: 21.0, fin: 24.0, horaTxt: "09:00 PM – 12:00 AM", titulo: "sin programacion", desc: "." }
     ];
 
     function actualizarProgramaActual() {
