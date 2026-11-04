@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos y Condiciones - Canal C del Zulia</title>
+  <meta name="description" content="Términos y Condiciones de Uso de Canal C del Zulia.">
+  <meta name="theme-color" content="#06152f">
+
+  <!-- Favicon Oficial -->
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/xCST0GYB/BCO-65d7ed72-e416-439b-b9e5-5308f2e30747-(1).png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(0,119,255,.18), transparent 30%), radial-gradient(circle at 80% 70%, rgba(0,153,255,.12), transparent 30%), #020817;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ESTRELLAS Y PARTÍCULAS */
+    .stars, .stars::before, .stars::after {
+      position: fixed; inset: 0; content: ""; pointer-events: none; z-index: -3;
+    }
+    .stars {
+      background-image: radial-gradient(circle, rgba(255,255,255,.8) 1px, transparent 1px), radial-gradient(circle, rgba(100,180,255,.6) 1px, transparent 1px);
+      background-size: 90px 90px, 140px 140px;
+      background-position: 0 0, 40px 60px;
+      animation: starsMove 35s linear infinite;
+    }
+    .stars::before {
+      background-image: radial-gradient(circle, rgba(255,255,255,.7) 1px, transparent 1px);
+      background-size: 180px 180px;
+      animation: starsMove2 50s linear infinite;
+    }
+    @keyframes starsMove { from { transform: translateY(0); } to { transform: translateY(90px); } }
+    @keyframes starsMove2 { from { transform: translate(0,0); } to { transform: translate(-100px,120px); } }
+
+    /* HEADER */
+    header {
+      position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; padding: 14px 5%;
+      background: rgba(2,8,23,.82); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(40,150,255,.15);
+    }
+    .nav { max-width: 1250px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 25px; }
+    .logo { display: flex; align-items: center; gap: 12px; font-weight: bold; font-size: 18px; white-space: nowrap; }
+    .logo img { width: 48px; height: 48px; object-fit: contain; border-radius: 10px; }
+    
+    nav { display: flex; align-items: center; gap: 22px; }
+    nav a { color: #d7eaff; font-size: 15px; transition: .25s; }
+    nav a:hover { color: #31a7ff; text-shadow: 0 0 12px rgba(49,167,255,.7); }
+
+    /* BOTÓN HAMBURGUESA */
+    .menu-toggle {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 30px;
+      height: 21px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .menu-toggle span {
+      display: block; width: 100%; height: 3px; background: #d7eaff; border-radius: 3px; transition: 0.3s;
+    }
+
+    /* CONTENEDOR DE DOCUMENTO LEGAL */
+    .legal-container {
+      max-width: 950px; width: 90%; margin: 130px auto 60px auto; flex: 1;
+      background: rgba(255,255,255,.035); border: 1px solid rgba(75,170,255,.16);
+      border-radius: 24px; padding: 45px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .legal-container .header-doc { margin-bottom: 30px; border-bottom: 1px solid rgba(53,169,255,0.2); padding-bottom: 20px; }
+    .legal-container h1 { font-size: clamp(26px, 4vw, 36px); color: #35a9ff; margin-bottom: 8px; }
+    .legal-container .subtitle { color: #6fc4ff; font-size: 16px; font-weight: bold; margin-bottom: 12px; }
+    .legal-container .meta { color: #72849a; font-size: 13.5px; display: flex; flex-direction: column; gap: 4px; }
+    
+    .legal-container h2 { font-size: 20px; color: #fff; margin: 30px 0 14px 0; font-weight: bold; }
+    .legal-container p { color: #aabbd0; line-height: 1.8; font-size: 15px; margin-bottom: 14px; }
+    .legal-container ul { color: #aabbd0; line-height: 1.8; font-size: 15px; margin-left: 24px; margin-bottom: 16px; }
+    .legal-container li { margin-bottom: 6px; }
+
+    /* FOOTER */
+    footer { padding: 45px 5%; border-top: 1px solid rgba(60,165,255,.1); background: rgba(0,0,10,.35); }
+    .footer-inner { max-width: 1150px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .footer-brand { display: flex; align-items: center; gap: 12px; }
+    .footer-brand img { width: 45px; height: 45px; object-fit: contain; }
+    .footer-info { display: flex; flex-direction: column; gap: 6px; }
+    footer p { color: #72849a; font-size: 13px; }
+    .footer-links { display: flex; gap: 15px; font-size: 12px; color: #8fa4be; }
+    .footer-links a:hover { color: #31a7ff; text-decoration: underline; }
+
+    /* RESPONSIVO */
+    @media (max-width: 900px) {
+      .menu-toggle { display: flex; }
+      nav {
+        position: absolute; top: 100%; left: 0; width: 100%;
+        background: rgba(2, 8, 23, 0.98); backdrop-filter: blur(15px);
+        flex-direction: column; align-items: center; padding: 0; gap: 0; display: none;
+      }
+      nav.active { display: flex; padding: 22px 0; gap: 18px; border-bottom: 1px solid rgba(40, 150, 255, 0.15); }
+      .legal-container { padding: 25px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars"></div>
+
+  <header>
+    <div class="nav">
+      <a href="index.html" class="logo">
+        <img src="https://i.postimg.cc/mrp5CGmj/Canal-C-del-Zulia-online.png" alt="Canal C del Zulia">
+        <span>Canal C del Zulia</span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="navMenu">
+        <a href="index.html" class="nav-item">Inicio</a>
+        <a href="en-vivo.html" class="nav-item">En vivo</a>
+        <a href="index.html#programacion" class="nav-item">Programación</a>
+        <a href="index.html#nosotros" class="nav-item">Sobre nosotros</a>
+        <a href="votar.html" class="nav-item">Votar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="legal-container">
+    <div class="header-doc">
+      <div class="subtitle">CANAL C DEL ZULIA</div>
+      <h1>Términos y Condiciones de Uso</h1>
+      <div class="meta">
+        <span><strong>Última actualización:</strong> 3 de Noviembre de 2026</span>
+        <span><strong>Vigencia:</strong> Desde su publicación oficial.</span>
+      </div>
+    </div>
+
+    <h2>1. Información general</h2>
+    <p>Canal C del Zulia, en adelante «Canal C, es un proyecto de comunicación y televisión digital dedicado a la difusión de contenidos audiovisuales, culturales, musicales, informativos, recreativos y de entretenimiento, de acuerdo con su programación y disponibilidad.</p>
+    <p>Estos Términos y Condiciones regulan el acceso y el uso de la señal, los contenidos, las plataformas digitales, las páginas web, las redes sociales y los demás servicios que sean gestionados oficialmente por Canal C.</p>
+    <p>Al acceder o utilizar estos servicios, el usuario acepta estas condiciones en la medida en que resulten legalmente aplicables. Si no está de acuerdo con ellas, deberá abstenerse de utilizar los servicios correspondientes.</p>
+
+    <h2>2. Alcance de los servicios</h2>
+    <p>Canal C puede ofrecer, entre otros, los siguientes servicios:</p>
+    <ul>
+      <li>Transmisión de una señal de televisión por Internet.</li>
+      <li>Programación audiovisual y musical.</li>
+      <li>Producciones originales, promociones, anuncios y material institucional.</li>
+      <li>Publicaciones en redes sociales y plataformas de video.</li>
+      <li>Guías de programación, información y contenido relacionado con el canal.</li>
+      <li>Otros servicios digitales que puedan incorporarse en el futuro.</li>
+    </ul>
+    <p>La disponibilidad de estos servicios puede variar por razones técnicas, operativas, de conectividad, mantenimiento, disponibilidad de contenidos o circunstancias ajenas al control de Canal C.</p>
+
+    <h2>3. Propiedad intelectual y contenido propio</h2>
+    <p>Los nombres, logotipos, diseños gráficos, identificadores visuales, promociones, textos, producciones originales y demás materiales creados por Canal C podrán estar protegidos por las normas aplicables sobre propiedad intelectual, derechos de autor y signos distintivos.</p>
+    <p>Salvo que se indique expresamente lo contrario, estos materiales no podrán copiarse, modificarse, publicarse, distribuirse, comercializarse ni utilizarse para crear una apariencia de afiliación oficial con Canal C sin la autorización correspondiente, cuando dicha autorización sea legalmente necesaria.</p>
+    <p>El acceso gratuito a la señal o a una publicación no significa que el usuario adquiera la propiedad del contenido ni que reciba una licencia general para reutilizarlo.</p>
+    <p>Canal C podrá autorizar determinados usos de sus materiales por escrito, estableciendo las condiciones, el alcance, la duración y las limitaciones de cada autorización.</p>
+    <p>Estas disposiciones se aplican únicamente a los derechos que Canal C posea o esté facultado para gestionar.</p>
+
+    <h2>4. Contenido de terceros y derechos correspondientes</h2>
+    <p>La programación de Canal C puede incluir contenidos creados, producidos, distribuidos o titularizados por personas, empresas, instituciones, canales de televisión, productores, artistas u otros terceros.</p>
+    <p>Entre estos materiales pueden encontrarse programas, películas, series, dibujos animados, videos musicales, grabaciones, imágenes, marcas, personajes, logotipos y otros elementos protegidos.</p>
+    <p>La inclusión de un contenido en la programación no implica necesariamente que Canal C sea su propietario ni que posea todos los derechos exclusivos sobre él.</p>
+    <p>Los derechos correspondientes seguirán perteneciendo a sus respectivos titulares, de acuerdo con las autorizaciones, licencias, contratos y demás condiciones que resulten aplicables.</p>
+    <p>Canal C no pretende atribuirse la propiedad de materiales ajenos ni afirmar que dispone de permisos que no hayan sido confirmados.</p>
+    <p>Когда corresponda, Canal C podrá identificar a los titulares, atender reclamaciones fundamentadas, retirar o sustituir contenidos y adoptar otras medidas razonables conforme a sus derechos y obligaciones.</p>
+
+    <h2>5. Uso de la señal de Canal C</h2>
+    <p>La señal digital de Canal C está destinada a su recepción y visualización mediante los medios autorizados o habilitados para acceder a ella.</p>
+    <p>Salvo autorización expresa o una excepción permitida por la legislación aplicable, queda prohibido:</p>
+    <ul>
+      <li>Retransmitir, redistribuir o revender la señal completa o una parte sustancial de ella.</li>
+      <li>Incorporar la señal a otro canal, servicio o plataforma como si se tratara de una transmisión propia autorizada.</li>
+      <li>Capturar y redistribuir continuamente la señal con fines comerciales sin los permisos correspondientes.</li>
+      <li>Alterar la señal, los identificadores del canal o sus avisos de titularidad de manera engañosa.</li>
+      <li>Utilizar la identidad de Canal C para aparentar una asociación, autorización o representación oficial inexistente.</li>
+      <li>Eludir medidas técnicas de acceso o utilizar la señal de forma ilícita.</li>
+    </ul>
+    <p>Estas restricciones no pretenden impedir los usos permitidos por la ley, las autorizaciones otorgadas por Canal C ni los derechos de los titulares de los contenidos incorporados en la programación.</p>
+    <p>El acceso público a la señal no constituye, por sí mismo, una autorización para retransmitir todos los programas que contiene.</p>
+
+    <h2>6. Uso permitido de los servicios</h2>
+    <p>Los usuarios se comprometen a utilizar los servicios de Canal C de manera lícita, respetuosa y compatible con estos términos.</p>
+    <p>No deberán utilizar los servicios para:</p>
+    <ul>
+      <li>Distribuir contenido ilícito o que infrinja derechos de terceros.</li>
+      <li>Suplantar la identidad del canal o de sus representantes.</li>
+      <li>Publicar información falsa que presente una autorización inexistente como si fuera oficial.</li>
+      <li>Interferir deliberadamente con el funcionamiento de los servicios.</li>
+      <li>Intentar obtener acceso no autorizado a sistemas, cuentas o recursos del canal.</li>
+      <li>Utilizar marcas, logotipos o materiales del canal de forma engañosa.</li>
+    </ul>
+    <p>Canal C podrá adoptar medidas razonables frente a usos que vulneren estas condiciones, respetando la legislación aplicable y los derechos de las personas involucradas.</p>
+
+    <h2>7. Marcas, nombres y logotipos</h2>
+    <p>El nombre «Canal C del Zulia», sus logotipos, identificadores visuales y otros elementos de identidad podrán estar protegidos por los derechos que correspondan a sus titulares.</p>
+    <p>Su aparición en una publicación, producción o transmisión no concede automáticamente permiso para utilizarlos en productos, servicios, canales o campañas ajenas.</p>
+    <p>Los nombres, logotipos y marcas de terceros que aparezcan en la programación pertenecen a sus respectivos titulares. Su uso no implica necesariamente patrocinio, afiliación, aprobación o asociación comercial con Canal C.</p>
+
+    <h2>8. Publicidad, promociones y colaboraciones</h2>
+    <p>Canal C podrá difundir promociones propias, anuncios, colaboraciones, menciones comerciales y material publicitario, según la disponibilidad y las condiciones de cada servicio.</p>
+    <p>La aparición de un negocio, producto, organización o servicio no constituye por sí sola una garantía de calidad, seguridad o idoneidad por parte de Canal C.</p>
+    <p>Las condiciones específicas de una colaboración o campaña podrán establecerse mediante acuerdos separados.</p>
+    <p>La publicación de publicidad deberá respetar los derechos de terceros y las normas aplicables. Canal C podrá rechazar o retirar material publicitario cuando existan motivos razonables para hacerlo.</p>
+
+    <h2>9. Disponibilidad y continuidad de la señal</h2>
+    <p>Canal C procurará mantener sus servicios disponibles en la medida de sus posibilidades técnicas y operativas. Sin embargo, no garantiza una transmisión ininterrumpida ni libre de errores.</p>
+    <p>La señal puede experimentar interrupciones, retrasos, pérdida de calidad, fallos de audio o video, cambios de programación o suspensiones temporales debido, entre otras causas, a:</p>
+    <ul>
+      <li>Problemas de conexión a Internet.</li>
+      <li>Fallos de alojamiento o de las plataformas de transmisión.</li>
+      <li>Mantenimiento o actualización de sistemas.</li>
+      <li>Cortes eléctricos.</li>
+      <li>Problemas con fuentes de señal o archivos audiovisuales.</li>
+      <li>Restricciones técnicas, reclamaciones de derechos o circunstancias externas.</li>
+    </ul>
+    <p>Cuando sea razonablemente posible, Canal C podrá tomar medidas para restablecer el servicio o informar sobre interrupciones relevantes.</p>
+
+    <h2>10. Responsabilidad y limitaciones</h2>
+    <p>La información y los servicios de Canal C se ofrecen según su disponibilidad y las condiciones aplicables a cada contenido.</p>
+    <p>En la medida permitida por la legislación, Canal C no garantiza que todos los servicios funcionen en todos los dispositivos, redes o ubicaciones.</p>
+    <p>Canal C no será responsable por fallos atribuibles exclusivamente a proveedores externos, plataformas de terceros, conexiones de los usuarios u otras circunstancias fuera de su control razonable, sin perjuicio de las responsabilidades que legalmente le correspondan.</p>
+    <p>Tampoco se pretende excluir o limitar responsabilidades que no puedan excluirse conforme a la legislación aplicable.</p>
+    <p>Los usuarios son responsables de utilizar los servicios de manera adecuada y de comprobar las condiciones de acceso y uso de las plataformas externas que decidan utilizar.</p>
+
+    <h2>11. Privacidad y datos personales</h2>
+    <p>Canal C procurará respetar la privacidad de sus usuarios y tratar los datos personales de manera responsable, de acuerdo con la legislación aplicable.</p>
+    <p>Estos términos no sustituyen una política de privacidad específica cuando esta sea necesaria.</p>
+    <p>Si Canal C habilita formularios, suscripciones, registros, publicidad personalizada u otros mecanismos de recopilación de datos, deberá informar, según corresponda, qué datos recopila, para qué los utiliza, con quién puede compartirlos y cómo pueden ejercerse los derechos aplicables.</p>
+    <p>Las plataformas externas utilizadas para acceder a la señal o consultar publicaciones pueden recopilar y tratar datos conforme a sus propias políticas. Se recomienda a los usuarios consultarlas.</p>
+    <p>Canal C no debe solicitar ni publicar contraseñas, datos bancarios u otra información confidencial de sus usuarios sin una necesidad legítima y medidas de protección adecuadas.</p>
+
+    <h2>12. Enlaces y plataformas externas</h2>
+    <p>Los servicios de Canal C pueden incluir enlaces o referencias a páginas web, redes sociales, plataformas de video u otros servicios administrados por terceros.</p>
+    <p>Estos servicios externos pueden tener sus propias condiciones, políticas de privacidad, requisitos de acceso y restricciones de contenido.</p>
+    <p>Salvo que exista un acuerdo que establezca lo contrario, Canal C no controla directamente las políticas ni la disponibilidad de dichos servicios y no garantiza la exactitud de toda la información publicada en ellos.</p>
+
+    <h2>13. Reclamaciones sobre derechos de autor</h2>
+    <p>Las personas o entidades que consideren que un contenido publicado o difundido por Canal C vulnera sus derechos podrán enviar una reclamación a través del contacto indicado al final de este documento.</p>
+    <p>Para facilitar su revisión, la reclamación debería incluir:</p>
+    <ul>
+      <li>Nombre y datos de contacto del reclamante o de su representante autorizado.</li>
+      <li>Identificación del contenido objeto de la reclamación.</li>
+      <li>Descripción del derecho presuntamente afectado.</li>
+      <li>Enlace, fecha, horario de emisión u otros datos que permitan localizar el material.</li>
+      <li>Explicación de la reclamación y, cuando corresponda, documentación que permita verificar la titularidad o la representación.</li>
+    </ul>
+    <p>Canal C podrá solicitar información adicional para evaluar la reclamación. Según las circunstancias, podrá revisar el material, limitar temporalmente su disponibilidad, sustituirlo o retirarlo cuando corresponda.</p>
+    <p>La presentación de una reclamación no supone automáticamente que exista una infracción. Las decisiones se evaluarán atendiendo a la información disponible, las autorizaciones pertinentes y la legislación aplicable.</p>
+
+    <h2>14. Modificaciones de estos términos</h2>
+    <p>Canal C podrá actualizar estos Términos y Condiciones cuando sea necesario debido a cambios en sus servicios, procedimientos, programación o requisitos legales.</p>
+    <p>La versión vigente se publicará en el medio oficial que Canal C determine. La fecha de actualización aparecerá al comienzo del documento.</p>
+    <p>Los cambios se aplicarán de acuerdo con su naturaleza y con las exigencias legales correspondientes. Cuando sea necesario, se informará a los usuarios de los cambios relevantes.</p>
+
+    <h2>15. Legislación aplicable</h2>
+    <p>Estos términos se interpretarán de acuerdo con la legislación aplicable a las actividades y servicios de Canal C, teniendo en cuenta las normas venezolanas pertinentes cuando corresponda y las demás disposiciones que resulten aplicables según el lugar, el servicio y las circunstancias.</p>
+    <p>Nada de lo establecido aquí pretende sustituir las autorizaciones administrativas, licencias de transmisión, permisos de uso de contenidos u otros requisitos que pudieran ser necesarios para determinadas actividades.</p>
+    <p>Si alguna disposición resulta inválida o inaplicable, las demás continuarán vigentes en la medida permitida por la ley.</p>
+
+    <h2>16. Contacto oficial</h2>
+    <p>Para consultas, solicitudes de autorización, observaciones sobre estos términos o reclamaciones relacionadas con derechos de autor, puedes comunicarte con Canal C del Zulia mediante el siguiente contacto:</p>
+    <p><strong>Correo electrónico:</strong> canalczulia@hotmail.com
+</p>
+    <p>Se recomienda incluir en el asunto una descripción clara de la solicitud para facilitar su identificación y revisión.</p>
+
+    <h2>17. Aceptación de los términos</h2>
+    <p>El acceso y uso de los servicios de Canal C estarán sujetos a estos Términos y Condiciones en la medida legalmente aplicable.</p>
+    <p>Canal C procurará mantener este documento disponible para consulta pública y actualizarlo cuando resulte necesario.</p>
+    
+    <p style="margin-top: 30px; font-weight: bold; color: #35a9ff;">Canal C del Zulia<br><span style="color: #72849a; font-weight: normal;">La señal que nos une.</span></p>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="https://i.postimg.cc/mrp5CGmj/Canal-C-del-Zulia-online.png" alt="Canal C">
+        <div class="footer-info">
+          <strong>Canal C del Zulia</strong>
+          <p>© 2024 - 2026 Canal C del Zulia. Todos los derechos reservados.</p>
+        </div>
+      </div>
+      <div class="footer-links">
+        <a href="terminos.html">Términos y Condiciones</a>
+        <span>•</span>
+        <a href="privacidad.html">Políticas de Privacidad</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    menuToggle.addEventListener('click', () => navMenu.classList.toggle('active'));
+  </script>
+
+</body>
+</html>
